@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String      @id @default(uuid())
+  email             String      @unique
+  password          String
+  name              String
+  bio               String?
+  avatar            String?
+  isAdmin           Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  products          Product[]
+  reviews           Review[]
+  favoriteProducts  Favorite[]
+  purchasedProducts Purchase[]
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  slug        String    @unique
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Tag {
+  id        String          @id @default(uuid())
+  name      String          @unique
+  slug      String          @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  products  ProductsOnTags[]
+}
+
+model Product {
+  id           String          @id @default(uuid())
+  title        String
+  description  String
+  price        Float
+  discountedPrice Float?
+  thumbnailUrl String
+  fileUrl      String
+  demoUrl      String?
+  slug         String          @unique
+  featured     Boolean         @default(false)
+  published    Boolean         @default(true)
+  downloads    Int             @default(0)
+  categoryId   String
+  userId       String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  
+  category     Category        @relation(fields: [categoryId], references: [id])
+  user         User            @relation(fields: [userId], references: [id])
+  tags         ProductsOnTags[]
+  reviews      Review[]
+  favorites    Favorite[]
+  purchases    Purchase[]
+}
+
+model ProductsOnTags {
+  productId    String
+  tagId        String
+  assignedAt   DateTime @default(now())
+  
+  product      Product  @relation(fields: [productId], references: [id])
+  tag          Tag      @relation(fields: [tagId], references: [id])
+  
+  @@id([productId, tagId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?
+  productId String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  createdAt DateTime @default(now())
+  
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  
+  @@unique([productId, userId])
+}
+
+model Purchase {
+  id         String   @id @default(uuid())
+  productId  String
+  userId     String
+  price      Float
+  paymentId  String?
+  createdAt  DateTime @default(now())
+  
+  product    Product  @relation(fields: [productId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+}
