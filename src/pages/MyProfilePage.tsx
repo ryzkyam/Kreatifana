@@ -189,7 +189,8 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
     </div>
   );
 };
-const BASE_BACKEND_URL = "http://localhost:3000";
+const BASE_BACKEND_URL =
+  "https://kreatifana-backend-production-2d4c.up.railway.app";
 const getFullImageUrl = (path: string | undefined | null) => {
   if (!path) {
     return "https://placehold.co/800x600/e0e0e0/505050?text=No+Image"; // Placeholder yang lebih besar untuk halaman detail
@@ -236,7 +237,7 @@ const UserProfilePage: React.FC = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/users/${usernameFromUrl}`,
+        `https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register/api/users/${usernameFromUrl}`,
         {
           headers: { Authorization: `Bearer ${auth.token}` },
         }
@@ -261,7 +262,7 @@ const UserProfilePage: React.FC = () => {
         products: (userFromBackend.products || []).map((p: any) => ({
           ...p,
           thumbnailUrl: p.image
-            ? `http://localhost:3000/uploads/${p.image}`
+            ? `https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register/uploads/${p.image}`
             : "https://placehold.co/400x300?text=No+Image",
         })),
       };
@@ -314,7 +315,7 @@ const UserProfilePage: React.FC = () => {
     try {
       // Panggil API PUT untuk update produk
       const response = await axios.put(
-        `http://localhost:3000/api/products/${updatedProduct.id}`, // Asumsi endpoint update produk
+        `https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register/api/products/${updatedProduct.id}`, // Asumsi endpoint update produk
         updatedProduct,
         {
           headers: { Authorization: `Bearer ${auth.token}` },
@@ -344,7 +345,7 @@ const UserProfilePage: React.FC = () => {
     try {
       // Panggil API DELETE untuk menghapus produk
       await axios.delete(
-        `http://localhost:3000/api/products/${productToDeleteId}`, // Asumsi endpoint delete produk
+        `https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register/api/products/${productToDeleteId}`, // Asumsi endpoint delete produk
         {
           headers: { Authorization: `Bearer ${auth.token}` },
         }
@@ -510,7 +511,6 @@ const UserProfilePage: React.FC = () => {
                 <Link to={`/product/${product.slug}`} className="block">
                   <div className="relative w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
                     {product.thumbnailUrl ? (
-                         
                       <img
                         src={getFullImageUrl(product.thumbnailUrl)}
                         alt={product.title}
@@ -523,7 +523,6 @@ const UserProfilePage: React.FC = () => {
                     ) : (
                       <Package className="w-12 h-12 text-gray-400" />
                     )}
-                    
                   </div>
                   <div className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
@@ -580,7 +579,6 @@ const UserProfilePage: React.FC = () => {
       />
     </div>
   );
-  
 };
 
 export default UserProfilePage;

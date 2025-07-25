@@ -67,7 +67,9 @@ const HomePage = () => {
         setLoadingProducts(true);
         setErrorProducts(null);
         // Pastikan URL ini sesuai dengan endpoint backend Anda
-        const response = await fetch("http://localhost:3000/api/products");
+        const response = await fetch(
+          "https://kreatifana-backend-production-2d4c.up.railway.app/api/products"
+        );
 
         if (!response.ok) {
           throw new Error(
@@ -241,10 +243,8 @@ const HomePage = () => {
               Bergabunglah dengan komunitas kreator kami dan jual produk
               digitalmu ke ribuan pelanggan di seluruh dunia.
             </p>
-            <Button  variant="primary" size="lg" >
-             <a href="/jadikreator">
-              Daftar jadi Kreator
-             </a>
+            <Button variant="primary" size="lg">
+              <a href="/jadikreator">Daftar jadi Kreator</a>
             </Button>
           </div>
         </div>

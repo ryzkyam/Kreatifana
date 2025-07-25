@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
+        "https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/login",
         { email, password }
       );
 
@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   ): Promise<boolean> => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/auth/register",
+        "https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register",
         { name, username, email, password }
       );
 

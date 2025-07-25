@@ -13,9 +13,9 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import React, { useEffect, useState, useRef } from "react"; // Tambahkan useRef
-import { useCart } from "../context/CartContext"; // Import useCart
+import React, { useEffect, useRef, useState } from "react"; // Tambahkan useRef
 import { useAuth } from "../context/AuthContext"; // Import useAuth
+import { useCart } from "../context/CartContext"; // Import useCart
 
 // --- Interfaces (pastikan ini sesuai dengan definisi di CartContext dan backend Anda) ---
 interface Product {
@@ -98,14 +98,20 @@ const paymentMethods: PaymentMethod[] = [
 
 // --- Fungsi untuk mendapatkan URL gambar lengkap ---
 // Pastikan VITE_APP_BACKEND_URL diatur di file .env Anda (misal: VITE_APP_BACKEND_URL=http://localhost:3000)
-const BASE_BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL || "http://localhost:3000";
+const BASE_BACKEND_URL =
+  import.meta.env.VITE_APP_BACKEND_URL ||
+  "https://kreatifana-backend-production-2d4c.up.railway.app";
 
 const getFullImageUrl = (path: string | undefined | null): string => {
   if (!path) {
     return "https://placehold.co/50x50/e0e0e0/505050?text=No+Img"; // Placeholder jika tidak ada gambar
   }
   // Cek apakah path sudah merupakan URL lengkap
-  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("//")) {
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("//")
+  ) {
     return path;
   }
   // Hapus '/' di awal jika ada untuk menghindari '//' di URL
@@ -115,7 +121,8 @@ const getFullImageUrl = (path: string | undefined | null): string => {
 
 const Cart: React.FC = () => {
   // Gunakan useCart hook untuk mengakses state dan fungsi keranjang
-  const { cartItems, updateQuantity, removeItem, clearCart, getTotalPrice } = useCart();
+  const { cartItems, updateQuantity, removeItem, clearCart, getTotalPrice } =
+    useCart();
   const { auth } = useAuth(); // Dapatkan data auth untuk email user
 
   const [currentStep, setCurrentStep] = useState<
@@ -135,10 +142,18 @@ const Cart: React.FC = () => {
 
   // --- STATE BARU UNTUK MENYIMPAN DATA ORDER SETELAH BERHASIL ---
   // Ini akan menyimpan snapshot keranjang dan ringkasan saat pembayaran berhasil
-  const [confirmedOrderItems, setConfirmedOrderItems] = useState<CartItem[]>([]);
-  const [finalOrderSummary, setFinalOrderSummary] = useState<OrderSummary>(orderSummary);
+  const [confirmedOrderItems, setConfirmedOrderItems] = useState<CartItem[]>(
+    []
+  );
+  const [finalOrderSummary, setFinalOrderSummary] =
+    useState<OrderSummary>(orderSummary);
   // Order ID yang akan tetap sama selama di halaman sukses
-  const orderId = useRef(`ORD-${Date.now().toString().slice(-8)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`).current;
+  const orderId = useRef(
+    `ORD-${Date.now().toString().slice(-8)}-${Math.random()
+      .toString(36)
+      .substring(2, 6)
+      .toUpperCase()}`
+  ).current;
   // --- AKHIR STATE BARU ---
 
   // Calculate order summary
@@ -221,35 +236,51 @@ const Cart: React.FC = () => {
          STRUK PEMESANAN REATIFANA
 ========================================
 Order ID: ${orderId}
-Tanggal: ${new Date().toLocaleDateString('id-ID', {
-      year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit', second: '2-digit'
+Tanggal: ${new Date().toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     })}
-Email Pembeli: ${auth.user?.email || 'N/A'}
-Metode Pembayaran: ${paymentMethods.find(m => m.id === selectedPaymentMethod)?.name || 'N/A'}
+Email Pembeli: ${auth.user?.email || "N/A"}
+Metode Pembayaran: ${
+      paymentMethods.find((m) => m.id === selectedPaymentMethod)?.name || "N/A"
+    }
 ----------------------------------------
 Detail Produk:
-${confirmedOrderItems.map(item => `
+${confirmedOrderItems
+  .map(
+    (item) => `
 - ${item.product.title}
-  Harga: Rp ${item.product.price.toLocaleString('id-ID')}
+  Harga: Rp ${item.product.price.toLocaleString("id-ID")}
   Jumlah: ${item.quantity}
-  Subtotal: Rp ${(item.product.price * item.quantity).toLocaleString('id-ID')}
-`).join('')}
+  Subtotal: Rp ${(item.product.price * item.quantity).toLocaleString("id-ID")}
+`
+  )
+  .join("")}
 ----------------------------------------
 Ringkasan Pembayaran:
-Subtotal: Rp ${finalOrderSummary.subtotal.toLocaleString('id-ID')}
-${promoApplied ? `Diskon (10%): -Rp ${finalOrderSummary.discount.toLocaleString('id-ID')}` : ''}
-PPN (11%): Rp ${finalOrderSummary.tax.toLocaleString('id-ID')}
-Total Pembayaran: Rp ${finalOrderSummary.total.toLocaleString('id-ID')}
+Subtotal: Rp ${finalOrderSummary.subtotal.toLocaleString("id-ID")}
+${
+  promoApplied
+    ? `Diskon (10%): -Rp ${finalOrderSummary.discount.toLocaleString("id-ID")}`
+    : ""
+}
+PPN (11%): Rp ${finalOrderSummary.tax.toLocaleString("id-ID")}
+Total Pembayaran: Rp ${finalOrderSummary.total.toLocaleString("id-ID")}
 ========================================
 Produk Digital akan dikirim ke email Anda.
 Terima kasih atas pemesanan Anda!
 ========================================
     `;
 
-    const blob = new Blob([receiptContent], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([receiptContent], {
+      type: "text/plain;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = `struk_pemesanan_${orderId}.txt`;
     document.body.appendChild(link);
@@ -278,29 +309,42 @@ Terima kasih atas pemesanan Anda!
           {/* Bagian Detail Produk dari Pesanan */}
           {confirmedOrderItems.length > 0 && (
             <div className="mb-6 border-t border-b border-gray-200 py-4 text-left">
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">Detail Pesanan Anda:</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                Detail Pesanan Anda:
+              </h2>
               {confirmedOrderItems.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4 mb-3 last:mb-0">
+                <div
+                  key={item.id}
+                  className="flex items-center space-x-4 mb-3 last:mb-0"
+                >
                   <img
                     src={getFullImageUrl(item.product.thumbnailUrl)}
                     alt={item.product.title}
                     className="w-16 h-16 object-cover rounded-md border border-gray-200"
                   />
                   <div className="flex-grow">
-                    <p className="font-medium text-gray-900">{item.product.title}</p>
+                    <p className="font-medium text-gray-900">
+                      {item.product.title}
+                    </p>
                     <p className="text-sm text-gray-600">
-                      Jumlah: {item.quantity} x Rp {item.product.price.toLocaleString('id-ID')}
+                      Jumlah: {item.quantity} x Rp{" "}
+                      {item.product.price.toLocaleString("id-ID")}
                     </p>
                   </div>
                   <p className="font-semibold text-gray-800">
-                    Rp {(item.product.price * item.quantity).toLocaleString('id-ID')}
+                    Rp{" "}
+                    {(item.product.price * item.quantity).toLocaleString(
+                      "id-ID"
+                    )}
                   </p>
                 </div>
               ))}
               <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-                <span className="text-lg font-bold text-gray-900">Total Pembayaran:</span>
+                <span className="text-lg font-bold text-gray-900">
+                  Total Pembayaran:
+                </span>
                 <span className="text-lg font-bold text-blue-600">
-                  Rp {finalOrderSummary.total.toLocaleString('id-ID')}
+                  Rp {finalOrderSummary.total.toLocaleString("id-ID")}
                 </span>
               </div>
             </div>
@@ -321,9 +365,7 @@ Terima kasih atas pemesanan Anda!
               Kembali ke Beranda
             </button>
           </div>
-          <p className="text-sm text-gray-500">
-            Order ID: #{orderId}
-          </p>
+          <p className="text-sm text-gray-500">Order ID: #{orderId}</p>
         </div>
       </div>
     );
