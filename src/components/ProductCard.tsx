@@ -39,21 +39,36 @@ const ProductCard: React.FC<ProductCardProps> = ({
   } = product;
 
   // --- START PERBAIKAN DI SINI ---
-  // Definisikan base URL backend kamu.
-  // PENTING: Ganti "http://localhost:3000" dengan URL server Express kamu yang sebenarnya.
-  const BASE_BACKEND_URL = "http://localhost:3000"; 
+  // Definisikan base URL backend kamu menggunakan variabel lingkungan dari Vite.
+  // Ini akan memastikan URL yang benar digunakan saat development (dari .env.local)
+  // dan saat deployment di Vercel (dari Environment Variables Vercel).
+  const BASE_BACKEND_URL = import.meta.env.VITE_API_URL;
+
+  // Pastikan URL ditemukan, jika tidak, log error agar mudah di-debug
+  if (!BASE_BACKEND_URL) {
+    console.error(
+      "VITE_API_URL is not defined in environment variables for ProductCard!"
+    );
+    // Anda mungkin ingin menggunakan placeholder atau menampilkan pesan error di UI
+  }
 
   // ✅ Perbaikan: Fungsi pembantu untuk membuat URL gambar lengkap
   const getFullImageUrl = (path: string | undefined | null) => {
     if (!path) {
-      return 'https://placehold.co/400x300/e0e0e0/505050?text=No+Image'; // Placeholder default
+      return "https://placehold.co/400x300/e0e0e0/505050?text=No+Image"; // Placeholder default
     }
-    // Jika path sudah berupa URL absolut, langsung gunakan
-    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('//')) {
+    // Jika path sudah berupa URL absolut (dari Supabase misalnya), langsung gunakan
+    if (
+      path.startsWith("http://") ||
+      path.startsWith("https://") ||
+      path.startsWith("//")
+    ) {
       return path;
     }
     // Jika path belum memiliki leading slash, tambahkan
-    const cleanedPath = path.startsWith('/') ? path : `/${path}`;
+    const cleanedPath = path.startsWith("/") ? path : `/${path}`;
+    // Gabungkan BASE_BACKEND_URL dengan path gambar
+    // Asumsi gambar disimpan di direktori publik backend (misal: /uploads/image.jpg)
     return `${BASE_BACKEND_URL}${cleanedPath}`;
   };
 
@@ -61,7 +76,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const fullImageUrl = getFullImageUrl(thumbnailUrl);
 
   // ✅ DEBUGGING: Log URL gambar yang akan dimuat
-  console.log(`ProductCard (${title}): Attempting to load image from: ${fullImageUrl}`);
+  console.log(
+    `ProductCard (${title}): Attempting to load image from: ${fullImageUrl}`
+  );
 
   // --- END PERBAIKAN DI SINI ---
 
@@ -79,14 +96,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
       <div className="relative">
         <img
           // Gunakan fullImageUrl di sini agar browser bisa menemukan gambarnya
-          src={fullImageUrl} 
+          src={fullImageUrl}
           alt={title}
           className="w-full h-48 object-cover"
           // Opsional: Tambahkan penanganan error jika gambar tidak dapat dimuat
-          onError={(e) => { 
-            e.currentTarget.src = 'https://placehold.co/400x300/e0e0e0/505050?text=Image+Load+Error';
+          onError={(e) => {
+            e.currentTarget.src =
+              "https://placehold.co/400x300/e0e0e0/505050?text=Image+Load+Error";
             e.currentTarget.onerror = null; // Menghindari looping error
-            console.error(`ProductCard (${title}): Failed to load image from ${fullImageUrl}`); // Log error gambar
+            console.error(
+              `ProductCard (${title}): Failed to load image from ${fullImageUrl}`
+            ); // Log error gambar
           }}
         />
         {discountPercentage && (

@@ -315,7 +315,7 @@ const UserProfilePage: React.FC = () => {
     try {
       // Panggil API PUT untuk update produk
       const response = await axios.put(
-        `https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register/api/products/${updatedProduct.id}`, // Asumsi endpoint update produk
+        `https://kreatifanabe-production.up.railway.app/api/auth/register/api/products/${updatedProduct.id}`, // Asumsi endpoint update produk
         updatedProduct,
         {
           headers: { Authorization: `Bearer ${auth.token}` },
@@ -345,7 +345,7 @@ const UserProfilePage: React.FC = () => {
     try {
       // Panggil API DELETE untuk menghapus produk
       await axios.delete(
-        `https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register/api/products/${productToDeleteId}`, // Asumsi endpoint delete produk
+        `https://kreatifanabe-production.up.railway.app/api/auth/register/api/products/${productToDeleteId}`, // Asumsi endpoint delete produk
         {
           headers: { Authorization: `Bearer ${auth.token}` },
         }

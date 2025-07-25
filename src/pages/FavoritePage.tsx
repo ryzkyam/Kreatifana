@@ -8,7 +8,7 @@ import { formatPrice } from "../lib/utils";
 
 import { Product } from "./ProductPage";
 
-const BASE_BACKEND_URL = "http://localhost:3000";
+const BASE_BACKEND_URL = "https://kreatifanabe-production.up.railway.app";
 
 const getFullImageUrl = (path: string | undefined | null) => {
   if (!path) {

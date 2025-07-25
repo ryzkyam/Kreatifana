@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 // Pastikan VITE_APP_BACKEND_URL telah didefinisikan di file .env Anda
 const BASE_BACKEND_URL =
   import.meta.env.VITE_APP_BACKEND_URL ||
-  "https://kreatifana-backend-production-2d4c.up.railway.app";
+  "https://kreatifanabe-production.up.railway.app";
 
 // --- Fungsi Helper untuk mendapatkan URL Gambar Penuh ---
 const getFullImageUrl = (path: string | undefined | null): string => {

@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await axios.post(
-        "https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/login",
+        "https://kreatifanabe-production.up.railway.app/api/auth/login",
         { email, password }
       );
 
@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   ): Promise<boolean> => {
     try {
       const response = await axios.post(
-        "https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register",
+        "https://kreatifanabe-production.up.railway.app/api/auth/register",
         { name, username, email, password }
       );
 

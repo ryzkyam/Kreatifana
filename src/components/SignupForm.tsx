@@ -33,7 +33,7 @@ const Signupform = () => {
       // ✅ PENTING: Periksa payload ini dan pastikan sesuai dengan yang diharapkan backend
       // Backend Anda harus menerima `name`, `username`, `email`, dan `password`.
       const response = await axios.post(
-        "https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register",
+        "https://kreatifanabe-production.up.railway.app/api/auth/register",
         {
           name,
           username,

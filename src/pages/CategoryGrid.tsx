@@ -18,7 +18,9 @@ const CategoryGrid: React.FC = () => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:3000/api/categories");
+        const response = await fetch(
+          "https://kreatifanabe-production.up.railway.app/api/categories"
+        );
 
         if (!response.ok) {
           throw new Error("Gagal mengambil data kategori");

@@ -8,7 +8,7 @@ import Button from "../components/ui/Button";
 
 // Definisikan ulang interface Product agar sesuai dengan struktur dari backend
 // Sesuaikan ini jika struktur dari backend Anda sedikit berbeda
-interface Product {
+export interface Product {
   id: string;
   title: string;
   description: string;
@@ -16,8 +16,46 @@ interface Product {
   oldPrice?: number | null; // oldPrice bisa null jika tidak ada diskon
   thumbnailUrl: string;
   slug: string;
-  user: { name: string; id: string; avatar: string | null }; // Asumsi user ada di sini
-  category: { id: string; name: string; slug: string }; // Asumsi category ada di sini
+  fileUrl?: string | null; // Menambahkan fileUrl jika ada
+  published?: boolean; // Menambahkan published jika ada
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  categoryId: string;
+  user: {
+    id: string;
+    name: string;
+    username: string;
+    avatar: string | null;
+  };
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  reviews?: Array<{
+    id: string;
+    rating: number;
+    comment?: string | null;
+    createdAt: string;
+    user: {
+      id: string;
+      name: string;
+      avatar?: string | null;
+    };
+  }>;
+  features?: Array<{
+    id: string;
+    text: string;
+    description?: string;
+    iconUrl?: string;
+  }>;
+  tags?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
+  downloads?: number; // Menambahkan downloads jika ada
   isFavorited?: boolean; // Ini akan dihitung di frontend
 }
 
@@ -68,7 +106,7 @@ const HomePage = () => {
         setErrorProducts(null);
         // Pastikan URL ini sesuai dengan endpoint backend Anda
         const response = await fetch(
-          "https://kreatifana-backend-production-2d4c.up.railway.app/api/products"
+          "https://kreatifanabe-production.up.railway.app/api/products"
         );
 
         if (!response.ok) {

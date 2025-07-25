@@ -22,7 +22,7 @@ import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext"; // PASTIKAN PATH INI SESUAI
 
 // --- Fungsi Pembantu untuk Gambar ---
-const BASE_BACKEND_URL = "http://localhost:3000"; // Sesuaikan dengan URL server Express Anda
+const BASE_BACKEND_URL = "https://kreatifanabe-production.up.railway.app"; // Sesuaikan dengan URL server Express Anda
 
 const getFullImageUrl = (path: string | undefined | null) => {
   if (!path) {
@@ -168,7 +168,6 @@ const ProductPage = () => {
         if (data.product && data.product.id) {
           setIsFavorited(isFavorite(data.product.id));
         }
-
       } catch (err: any) {
         console.error("Error fetching product:", err);
         setError(err.message);
@@ -191,7 +190,7 @@ const ProductPage = () => {
         (item) => item.product.id === product.id
       );
       setIsInCart(productExistsInCart);
-      
+
       // ✅ Perbarui isFavorited jika product atau favoriteItems dari context berubah
       setIsFavorited(isFavorite(product.id));
     }
@@ -209,10 +208,12 @@ const ProductPage = () => {
   const handleToggleFavorite = () => {
     if (!product) return; // Pastikan produk ada
 
-    if (isFavorited) { // Jika sudah favorit, hapus
+    if (isFavorited) {
+      // Jika sudah favorit, hapus
       removeFavorite(product.id);
       // setIsFavorited(false); // Tidak perlu manual, useEffect di atas akan mengupdate
-    } else { // Jika belum favorit, tambahkan
+    } else {
+      // Jika belum favorit, tambahkan
       addFavorite(product);
       // setIsFavorited(true); // Tidak perlu manual, useEffect di atas akan mengupdate
     }

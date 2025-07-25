@@ -50,7 +50,8 @@ interface Product {
  * Helper – Base URL
  **************************/
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://kreatifanabe-production.up.railway.app/api";
 const plural = {
   product: "products",
   category: "categories",
@@ -401,7 +402,6 @@ const AdminDashboard: React.FC = () => {
                 count: categories.length,
               },
               { key: "tags", label: "Tag", icon: TagIcon, count: tags.length },
-            
             ].map(({ key, label, icon: Icon, count }) => (
               <button
                 key={key}
