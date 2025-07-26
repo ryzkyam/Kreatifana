@@ -1,20 +1,50 @@
 import axios from "axios";
-import { Edit, Package, Trash2 } from "lucide-react"; // Import Edit and Trash2 icons
+import { Edit, Package, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-hot-toast"; // Pastikan Anda sudah menginstal react-hot-toast
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+
+// --- Konfigurasi URL Backend (menggunakan variabel lingkungan Vite) ---
+const BASE_BACKEND_URL =
+  import.meta.env.VITE_APP_BACKEND_URL ||
+  "https://kreatifana-backend-production-2d4c.up.railway.app"; // Default fallback
+
+// Tambahkan trailing slash jika belum ada
+const API_BASE_URL = BASE_BACKEND_URL.endsWith("/")
+  ? BASE_BACKEND_URL
+  : `${BASE_BACKEND_URL}/`;
+
+// Debugging log untuk memastikan API_BASE_URL di sini
+console.log("UserProfilePage: API_BASE_URL is", API_BASE_URL);
+
+// --- Fungsi Helper untuk mendapatkan URL Gambar Penuh ---
+const getFullImageUrl = (path: string | undefined | null): string => {
+  if (!path) {
+    return "https://placehold.co/400x300/e0e0e0/505050?text=No+Image"; // Placeholder jika tidak ada gambar
+  }
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("//")
+  ) {
+    return path;
+  }
+  // Gunakan API_BASE_URL untuk gambar
+  const cleanedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE_URL}${cleanedPath}`;
+};
 
 interface Product {
   id: string;
   title: string;
   thumbnailUrl: string;
-  image: string;
   description: string;
   slug: string;
   price: number;
   oldPrice?: number;
   user: { name: string };
-  category: { id: string; name: string }; // Tambahkan ID kategori jika diperlukan untuk form edit
+  category: { id: string; name: string };
 }
 
 interface UserProfile {
@@ -31,7 +61,7 @@ interface UserProfile {
   products?: Product[];
 }
 
-// --- Komponen Modal Edit Produk (Contoh Sederhana) ---
+// --- Komponen Modal Edit Produk ---
 interface EditProductModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -57,14 +87,20 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
+    setFormData((prev) =>
+      prev
+        ? {
+            ...prev,
+            [name]: name === "price" ? parseFloat(value) || 0 : value,
+          }
+        : null
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData) {
       onSave(formData);
-      onClose();
     }
   };
 
@@ -123,7 +159,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
               required
             />
           </div>
-          {/* Anda bisa menambahkan input untuk thumbnailUrl, category, dll. di sini */}
           <div className="flex justify-end space-x-4">
             <button
               type="button"
@@ -164,12 +199,10 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm text-center">
-        <h2 className="text-xl font-bold mb-4 text-red-600">
-          Confirm Deletion
-        </h2>
+        <h2 className="text-xl font-bold mb-4 text-red-600">Konfirmasi</h2>
         <p className="text-gray-700 mb-6">
-          Are you sure you want to delete "{itemName}"? This action cannot be
-          undone.
+          Yakin ingin menghapus item ini "{itemName}"? Tindakan ini tidak dapat
+          diurungkan.
         </p>
         <div className="flex justify-center space-x-4">
           <button
@@ -189,31 +222,15 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
     </div>
   );
 };
-const BASE_BACKEND_URL =
-  "https://kreatifana-backend-production-2d4c.up.railway.app";
-const getFullImageUrl = (path: string | undefined | null) => {
-  if (!path) {
-    return "https://placehold.co/800x600/e0e0e0/505050?text=No+Image"; // Placeholder yang lebih besar untuk halaman detail
-  }
-  // Jika path sudah berupa URL absolut, langsung gunakan
-  if (
-    path.startsWith("http://") ||
-    path.startsWith("https://") ||
-    path.startsWith("//")
-  ) {
-    return path;
-  }
-  // Jika path belum memiliki leading slash, tambahkan
-  const cleanedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${BASE_BACKEND_URL}${cleanedPath}`;
-};
+
+// --- Komponen UserProfilePage Utama ---
 const UserProfilePage: React.FC = () => {
   const { username: usernameFromUrl } = useParams<{ username: string }>();
   const navigate = useNavigate();
-  const { auth, isLoading: authLoading } = useAuth();
+  const { auth, isLoading: authLoading } = useAuth(); // Ambil auth dan isLoading dari useAuth
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // isLoading untuk fetching data profil
   const [error, setError] = useState<string | null>(null);
 
   // State untuk modal edit
@@ -232,12 +249,33 @@ const UserProfilePage: React.FC = () => {
 
   // Fungsi untuk mengambil data profil pengguna (termasuk produk)
   const fetchUserProfileData = async () => {
-    setIsLoading(true);
+    setIsLoading(true); // Mulai loading untuk fetching profil
     setError(null);
 
+    // --- DEBUGGING LOGS ---
+    console.log("UserProfilePage: Entering fetchUserProfileData.");
+    console.log("UserProfilePage: Current auth.token:", auth.token);
+    console.log("UserProfilePage: Current usernameFromUrl:", usernameFromUrl);
+    // --- END DEBUGGING LOGS ---
+
     try {
+      if (!auth.token) {
+        console.warn("UserProfilePage: No token found, redirecting to login.");
+        toast.error("Anda harus login untuk mengakses halaman ini.");
+        navigate("/LoginPage");
+        return; // Hentikan eksekusi jika tidak ada token
+      }
+      if (!usernameFromUrl) {
+        console.error("UserProfilePage: Username not found in URL.");
+        setError(
+          "Username tidak ditemukan di URL. Mohon berikan username yang valid."
+        );
+        setIsLoading(false);
+        return;
+      }
+
       const response = await axios.get(
-        `https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register/api/users/${usernameFromUrl}`,
+        `${API_BASE_URL}api/users/${usernameFromUrl}`,
         {
           headers: { Authorization: `Bearer ${auth.token}` },
         }
@@ -245,13 +283,11 @@ const UserProfilePage: React.FC = () => {
 
       const userFromBackend = response.data.user;
 
+      // Memastikan struktur data Product dan UserProfile sesuai
       const fixedUser: UserProfile = {
         id: userFromBackend.id,
         name: userFromBackend.name,
-        username:
-          userFromBackend.username ||
-          userFromBackend.name ||
-          `User-${userFromBackend.id.substring(0, 5)}`,
+        username: userFromBackend.username || userFromBackend.name,
         email: userFromBackend.email,
         bio: userFromBackend.bio || "No bio available.",
         avatar: userFromBackend.avatar || "/images/default-avatar.png",
@@ -259,50 +295,68 @@ const UserProfilePage: React.FC = () => {
         following: userFromBackend.following || 0,
         location: userFromBackend.location || "",
         portfolio: userFromBackend.portfolio || "",
-        products: (userFromBackend.products || []).map((p: any) => ({
-          ...p,
-          thumbnailUrl: p.image
-            ? `https://kreatifana-backend-production-2d4c.up.railway.app/api/auth/register/uploads/${p.image}`
-            : "https://placehold.co/400x300?text=No+Image",
-        })),
+        products:
+          userFromBackend.products?.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            thumbnailUrl: p.thumbnailUrl,
+            description: p.description,
+            slug: p.slug,
+            price: parseFloat(p.price),
+            oldPrice: p.oldPrice ? parseFloat(p.oldPrice) : undefined,
+            user: p.user,
+            category: p.category,
+          })) || [],
       };
 
       setUserProfile(fixedUser);
+      console.log("UserProfilePage: User profile fetched successfully.");
     } catch (err) {
-      console.error("Fetch user profile error:", err);
+      console.error("UserProfilePage: Fetch user profile error:", err);
       if (axios.isAxiosError(err) && err.response) {
-        setError(
-          err.response.data.message || `Error: ${err.response.statusText}`
-        );
+        const errorMessage =
+          err.response.data.message || `Error: ${err.response.statusText}`;
+        setError(errorMessage);
         if (err.response.status === 401 || err.response.status === 403) {
+          toast.error(
+            "Sesi Anda berakhir atau tidak sah. Silakan login kembali."
+          );
           navigate("/LoginPage");
+        } else {
+          toast.error(`Gagal memuat profil: ${errorMessage}`);
         }
       } else {
-        setError("Error fetching profile. Please try again.");
+        setError("Terjadi kesalahan saat mengambil profil. Silakan coba lagi.");
+        toast.error("Terjadi kesalahan tak terduga saat memuat profil.");
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Selesai loading untuk fetching profil
     }
   };
-  useEffect(() => {
-    if (authLoading) return;
 
-    // Jika auth.user null, token null, dan usernameFromUrl ada — redirect ke login
-    if (!auth.token || !auth.user) {
-      console.warn("Token atau user kosong, redirecting...");
+  useEffect(() => {
+    // Gunakan isLoading dari AuthContext untuk memastikan context sudah siap
+    if (authLoading) {
+      console.log("UserProfilePage: AuthContext is still loading, waiting...");
+      return;
+    }
+
+    // Jika auth.token tidak ada setelah AuthContext selesai loading, redirect
+    if (!auth.token) {
+      console.warn(
+        "UserProfilePage: Auth token is missing after AuthContext loaded. Redirecting."
+      );
+      toast.error("Anda harus login untuk mengakses halaman ini.");
       navigate("/LoginPage");
       return;
     }
 
-    // Jika username tidak ada di URL
-    if (!usernameFromUrl) {
-      setError("Username tidak ditemukan di URL.");
-      return;
-    }
-
-    // Jika semua sudah valid
+    // Panggil fungsi fetch data profil hanya jika semua syarat terpenuhi
+    console.log(
+      "UserProfilePage: Auth token available, fetching profile data."
+    );
     fetchUserProfileData();
-  }, [authLoading, auth.token, auth.user, usernameFromUrl, navigate]);
+  }, [usernameFromUrl, auth.token, authLoading, navigate]); // Dependensi sudah benar
 
   // --- Fungsi-fungsi CRUD Produk ---
 
@@ -313,20 +367,20 @@ const UserProfilePage: React.FC = () => {
 
   const handleUpdateProduct = async (updatedProduct: Product) => {
     try {
-      // Panggil API PUT untuk update produk
       const response = await axios.put(
-        `https://kreatifanabe-production.up.railway.app/api/auth/register/api/products/${updatedProduct.id}`, // Asumsi endpoint update produk
+        `${API_BASE_URL}api/products/${updatedProduct.id}`,
         updatedProduct,
         {
           headers: { Authorization: `Bearer ${auth.token}` },
         }
       );
+      toast.success("Produk berhasil diperbarui!");
       console.log("Product updated successfully:", response.data);
-      // Refresh data profil setelah update
-      fetchUserProfileData();
+      fetchUserProfileData(); // Refresh data profil setelah update
     } catch (err) {
       console.error("Error updating product:", err);
-      setError("Failed to update product. Please try again.");
+      toast.error("Gagal memperbarui produk. Silakan coba lagi.");
+      setError("Gagal memperbarui produk. Silakan coba lagi.");
     } finally {
       setIsEditModalOpen(false);
       setEditingProduct(null);
@@ -343,19 +397,16 @@ const UserProfilePage: React.FC = () => {
     if (!productToDeleteId) return;
 
     try {
-      // Panggil API DELETE untuk menghapus produk
-      await axios.delete(
-        `https://kreatifanabe-production.up.railway.app/api/auth/register/api/products/${productToDeleteId}`, // Asumsi endpoint delete produk
-        {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        }
-      );
+      await axios.delete(`${API_BASE_URL}api/products/${productToDeleteId}`, {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
+      toast.success("Produk berhasil dihapus!");
       console.log("Product deleted successfully:", productToDeleteId);
-      // Refresh data profil setelah hapus
-      fetchUserProfileData();
+      fetchUserProfileData(); // Refresh data profil setelah hapus
     } catch (err) {
       console.error("Error deleting product:", err);
-      setError("Failed to delete product. Please try again.");
+      toast.error("Gagal menghapus produk. Silakan coba lagi.");
+      setError("Gagal menghapus produk. Silakan coba lagi.");
     } finally {
       setIsConfirmDeleteModalOpen(false);
       setProductToDeleteId(null);
@@ -363,11 +414,12 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  // Tampilan loading
+  // Tampilan loading (prioritas tinggi)
+  // Gabungkan isLoading dari AuthContext dan isLoading dari fetching profil
   if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center h-screen text-gray-700 text-lg font-semibold">
-        Loading user profile...
+        Memuat profil pengguna...
       </div>
     );
   }
@@ -377,12 +429,12 @@ const UserProfilePage: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen text-red-600 text-lg font-semibold">
         <p>{error}</p>
-        {error.includes("Authentication required") && (
+        {error.includes("login") && (
           <button
             onClick={() => navigate("/LoginPage")}
             className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
           >
-            Go to Login
+            Pergi ke Halaman Login
           </button>
         )}
       </div>
@@ -393,8 +445,8 @@ const UserProfilePage: React.FC = () => {
   if (!userProfile) {
     return (
       <div className="flex items-center justify-center h-screen text-gray-700 text-lg font-semibold">
-        No user profile found. This user might not exist or there's an issue
-        with fetching their data.
+        Profil pengguna tidak ditemukan. Pengguna ini mungkin tidak ada atau ada
+        masalah saat mengambil datanya.
       </div>
     );
   }
@@ -422,7 +474,7 @@ const UserProfilePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center sm:space-x-6">
           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white bg-gray-300 flex-shrink-0">
             <img
-              src={avatar || "/images/default-avatar.png"}
+              src={getFullImageUrl(avatar)}
               alt={`${name}'s avatar`}
               className="w-full h-full object-cover rounded-full"
             />
@@ -470,8 +522,10 @@ const UserProfilePage: React.FC = () => {
       {/* Bagian Daftar Produk yang Diunggah Pengguna */}
       <div className="bg-white shadow rounded-lg p-6 mt-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          {isOwnProfile ? "Produk digital kamu" : `Products by @${username}`} (
-          {products ? products.length : 0})
+          {isOwnProfile
+            ? "Produk yang Anda Unggah"
+            : `Produk oleh @${username}`}{" "}
+          ({products ? products.length : 0})
         </h2>
 
         {products && products.length > 0 ? (
@@ -515,10 +569,6 @@ const UserProfilePage: React.FC = () => {
                         src={getFullImageUrl(product.thumbnailUrl)}
                         alt={product.title}
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "https://placehold.co/400x300?text=Image+Not+Found";
-                        }}
                       />
                     ) : (
                       <Package className="w-12 h-12 text-gray-400" />
@@ -549,15 +599,15 @@ const UserProfilePage: React.FC = () => {
             <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-medium">
               {isOwnProfile
-                ? "You haven't uploaded any products yet."
-                : `This user hasn't uploaded any products yet.`}
+                ? "Anda belum mengunggah produk apa pun."
+                : `Pengguna ini belum mengunggah produk apa pun.`}
             </p>
             {isOwnProfile && (
               <Link
-                to="/upload-product" // Ganti dengan rute upload produk Anda
+                to="/upload-product"
                 className="inline-flex items-center mt-4 px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700"
               >
-                Upload Your First Product
+                Unggah Produk Pertama Anda
               </Link>
             )}
           </div>
@@ -575,7 +625,7 @@ const UserProfilePage: React.FC = () => {
         isOpen={isConfirmDeleteModalOpen}
         onClose={() => setIsConfirmDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        itemName={productToDeleteTitle || "this product"}
+        itemName={productToDeleteTitle || "produk ini"}
       />
     </div>
   );

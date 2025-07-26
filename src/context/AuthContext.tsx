@@ -1,8 +1,25 @@
-// src/contexts/AuthContext.tsx
-
+// src/context/AuthContext.tsx
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import React, { createContext, useContext, useEffect, useState } from "react"; // Pastikan semua import ada
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
+// --- Konfigurasi URL Backend ---
+const BASE_BACKEND_URL_FROM_ENV =
+  import.meta.env.VITE_APP_BACKEND_URL ||
+  "https://kreatifanabe-production.up.railway.app"; // Default fallback
+
+// PENTING: Pastikan ini diekspor
+export const API_BASE_URL = BASE_BACKEND_URL_FROM_ENV.endsWith("/")
+  ? BASE_BACKEND_URL_FROM_ENV
+  : `${BASE_BACKEND_URL_FROM_ENV}/`;
+
+console.log("AuthContext: API_BASE_URL is", API_BASE_URL);
 
 interface User {
   id: string;
@@ -10,75 +27,49 @@ interface User {
   name: string;
   username: string;
   isAdmin: boolean;
-  // Jika Anda akan menambahkan avatar/products lagi di masa depan, tambahkan di sini:
-  // avatar?: string | null;
-  // products?: Product[];
 }
 
-// Jika Anda akan menambahkan Product interface lagi, definisikan di sini
-// interface Product {
-//   id: string;
-//   title: string;
-//   thumbnailUrl?: string | null;
-//   // ...
-// }
-
-interface AuthState {
+interface AuthType {
   token: string | null;
   user: User | null;
 }
 
 interface AuthContextType {
-  auth: AuthState;
+  auth: AuthType;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; message?: string }>;
   signup: (
     name: string,
     username: string,
     email: string,
     password: string
-  ) => Promise<boolean>;
+  ) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
-  // Jika Anda menambahkan getFullImageUrl ke context, tambahkan di sini:
-  // getFullImageUrl: (path: string | undefined | null) => string;
 }
 
-// --- MODIFIKASI INI ---
-// Deklarasikan context itu sendiri
-const AuthContext = createContext<AuthContextType | undefined>(undefined); // Ubah default value ke undefined
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// --- MODIFIKASI INI ---
-// Buat custom hook useAuth sebagai fungsi terpisah
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-
-// --- SISANYA TETAP SAMA (PROVIDER) ---
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [auth, setAuth] = useState<AuthState>({
-    token: null,
-    user: null,
-  });
+  const [auth, setAuth] = useState<AuthType>({ token: null, user: null });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    console.log("📦 Token from localStorage on load:", token);
+    console.log("📦 Token from localStorage on AuthProvider load:", token);
 
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
-        console.log("🔓 Decoded token:", decoded);
+        console.log("🔓 Decoded token on AuthProvider load:", decoded);
         const currentTime = Date.now() / 1000;
 
         if (decoded.exp < currentTime) {
-          console.warn("⏰ Token expired.");
+          console.warn("⏰ Token expired on load.");
           localStorage.removeItem("authToken");
           setAuth({ token: null, user: null });
         } else {
@@ -94,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           });
         }
       } catch (err) {
-        console.error("❌ Failed to decode token", err);
+        console.error("❌ Failed to decode token on load", err);
         localStorage.removeItem("authToken");
         setAuth({ token: null, user: null });
       }
@@ -103,18 +94,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
     try {
-      const response = await axios.post(
-        "https://kreatifanabe-production.up.railway.app/api/auth/login",
-        { email, password }
-      );
+      const response = await axios.post(`${API_BASE_URL}api/auth/login`, {
+        // Menggunakan API_BASE_URL
+        email,
+        password,
+      });
 
       const { token, user } = response.data;
 
       if (token && user) {
         localStorage.setItem("authToken", token);
-
         setAuth({
           token,
           user: {
@@ -125,14 +120,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             isAdmin: user.isAdmin,
           },
         });
-
-        return true;
+        return { success: true };
       }
-
-      return false;
-    } catch (error) {
-      console.error("Login error:", error);
-      return false;
+      return { success: false, message: "No token or user data in response." };
+    } catch (error: any) {
+      console.error(
+        "Login failed:",
+        error.response?.data?.message || error.message
+      );
+      return {
+        success: false,
+        message: error.response?.data?.message || "Login failed",
+      };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -141,10 +142,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     username: string,
     email: string,
     password: string
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
     try {
       const response = await axios.post(
-        "https://kreatifanabe-production.up.railway.app/api/auth/register",
+        `${API_BASE_URL}api/auth/register`, // Menggunakan API_BASE_URL
         { name, username, email, password }
       );
 
@@ -163,20 +165,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             isAdmin: user.isAdmin,
           },
         });
-
-        return true;
+        return { success: true };
       }
-
-      return false;
-    } catch (error) {
-      console.error("Signup error:", error);
-      return false;
+      return { success: false, message: "No token or user data in response." };
+    } catch (error: any) {
+      console.error(
+        "Signup error:",
+        error.response?.data?.message || error.message
+      );
+      return {
+        success: false,
+        message: error.response?.data?.message || "Signup failed",
+      };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = () => {
     localStorage.removeItem("authToken");
     setAuth({ token: null, user: null });
+    console.log("User logged out. authToken removed.");
   };
 
   return (
@@ -184,4 +193,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
     </AuthContext.Provider>
   );
+};
+
+// PENTING: Pastikan ini diekspor
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };

@@ -39,25 +39,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
   } = product;
 
   // --- START PERBAIKAN DI SINI ---
-  // Definisikan base URL backend kamu menggunakan variabel lingkungan dari Vite.
-  // Ini akan memastikan URL yang benar digunakan saat development (dari .env.local)
-  // dan saat deployment di Vercel (dari Environment Variables Vercel).
-  const BASE_BACKEND_URL = import.meta.env.VITE_API_URL;
-
-  // Pastikan URL ditemukan, jika tidak, log error agar mudah di-debug
-  if (!BASE_BACKEND_URL) {
-    console.error(
-      "VITE_API_URL is not defined in environment variables for ProductCard!"
-    );
-    // Anda mungkin ingin menggunakan placeholder atau menampilkan pesan error di UI
-  }
+  // Definisikan base URL backend kamu.
+  // PENTING: Ganti "http://localhost:3000" dengan URL server Express kamu yang sebenarnya.
+  const BASE_BACKEND_URL = "https://kreatifanabe-production.up.railway.app";
 
   // ✅ Perbaikan: Fungsi pembantu untuk membuat URL gambar lengkap
   const getFullImageUrl = (path: string | undefined | null) => {
     if (!path) {
       return "https://placehold.co/400x300/e0e0e0/505050?text=No+Image"; // Placeholder default
     }
-    // Jika path sudah berupa URL absolut (dari Supabase misalnya), langsung gunakan
+    // Jika path sudah berupa URL absolut, langsung gunakan
     if (
       path.startsWith("http://") ||
       path.startsWith("https://") ||
@@ -67,8 +58,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
     // Jika path belum memiliki leading slash, tambahkan
     const cleanedPath = path.startsWith("/") ? path : `/${path}`;
-    // Gabungkan BASE_BACKEND_URL dengan path gambar
-    // Asumsi gambar disimpan di direktori publik backend (misal: /uploads/image.jpg)
     return `${BASE_BACKEND_URL}${cleanedPath}`;
   };
 

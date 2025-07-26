@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import bgimage from "../assets/banner.png";
 import ProductCard from "../components/ProductCard";
 import Button from "../components/ui/Button";
-
+import { API_BASE_URL } from "../context/AuthContext";
 // Definisikan ulang interface Product agar sesuai dengan struktur dari backend
 // Sesuaikan ini jika struktur dari backend Anda sedikit berbeda
 export interface Product {
@@ -105,9 +105,7 @@ const HomePage = () => {
         setLoadingProducts(true);
         setErrorProducts(null);
         // Pastikan URL ini sesuai dengan endpoint backend Anda
-        const response = await fetch(
-          "https://kreatifanabe-production.up.railway.app/api/products"
-        );
+        const response = await fetch(`${API_BASE_URL}api/products`);
 
         if (!response.ok) {
           throw new Error(

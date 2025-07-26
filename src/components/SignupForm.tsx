@@ -1,9 +1,10 @@
-// Signupform.tsx
+// src/components/Signupform.tsx
 
-import axios from "axios"; // Asumsi Anda menggunakan axios untuk registrasi
+import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../context/AuthContext"; // <-- IMPORT API_BASE_URL DI SINI
 
 const Signupform = () => {
   // const { signup } = useAuth(); // Jika Anda punya fungsi signup di AuthContext
@@ -13,7 +14,7 @@ const Signupform = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // State baru untuk konfirmasi password
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +23,6 @@ const Signupform = () => {
     setIsLoading(true);
     setError(null);
 
-    // Validasi Frontend: Konfirmasi password harus cocok
     if (password !== confirmPassword) {
       toast.error("Password dan Konfirmasi Password tidak cocok.");
       setIsLoading(false);
@@ -30,10 +30,9 @@ const Signupform = () => {
     }
 
     try {
-      // ✅ PENTING: Periksa payload ini dan pastikan sesuai dengan yang diharapkan backend
-      // Backend Anda harus menerima `name`, `username`, `email`, dan `password`.
       const response = await axios.post(
-        "https://kreatifanabe-production.up.railway.app/api/auth/register",
+        // ✅ PERBAIKAN: Gunakan API_BASE_URL yang diimpor
+        `${API_BASE_URL}api/auth/register`,
         {
           name,
           username,
@@ -44,26 +43,21 @@ const Signupform = () => {
 
       if (response.data.success) {
         toast.success("Registrasi berhasil! Silakan login.");
-        navigate("/LoginPage"); // Arahkan ke halaman login
+        navigate("/LoginPage");
       } else {
-        // Jika backend mengirim `success: false` tapi bukan error HTTP, tangani di sini
         setError(response.data.message || "Registrasi gagal.");
         toast.error(response.data.message || "Registrasi gagal.");
       }
     } catch (err: any) {
       console.error("Error registrasi:", err);
       if (axios.isAxiosError(err) && err.response) {
-        // Tangani error HTTP dari backend (misal: 400 Bad Request, 409 Conflict)
         const errorMessage =
           err.response.data.message ||
           `Error ${err.response.status}: ${err.response.statusText}`;
         setError(errorMessage);
         toast.error(errorMessage);
-        // ✅ Untuk error 400 (Bad Request) atau 409 (Conflict), periksa detail pesan dari backend.
-        // Ini seringkali menunjukkan masalah validasi (misal: username/email sudah ada, password lemah, field kosong).
         console.log("Backend response for 400/409:", err.response.data);
       } else {
-        // Tangani error jaringan atau lainnya
         setError(
           "Terjadi kesalahan jaringan atau server tidak dapat dijangkau."
         );
@@ -143,7 +137,7 @@ const Signupform = () => {
           </label>
           <input
             type="password"
-            id="new-password" // ID unik
+            id="new-password"
             placeholder="Password baru"
             className="w-full px-4 py-2 text-gray-900 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 border-gray-300"
             value={password}
@@ -161,7 +155,7 @@ const Signupform = () => {
           </label>
           <input
             type="password"
-            id="confirm-password" // ID unik dan berbeda
+            id="confirm-password"
             placeholder="Konfirmasi password Anda"
             className="w-full px-4 py-2 text-gray-900 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 border-gray-300"
             value={confirmPassword}

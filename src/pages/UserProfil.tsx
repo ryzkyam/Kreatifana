@@ -6,18 +6,23 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 // --- Konfigurasi URL Backend (menggunakan variabel lingkungan Vite) ---
-// Ini akan mengambil nilai dari .env.development (saat dev) atau .env.production (saat build)
-// Pastikan VITE_APP_BACKEND_URL telah didefinisikan di file .env Anda
 const BASE_BACKEND_URL =
   import.meta.env.VITE_APP_BACKEND_URL ||
-  "https://kreatifanabe-production.up.railway.app";
+  "https://kreatifana-backend-production-2d4c.up.railway.app"; // Default fallback
+
+// Tambahkan trailing slash jika belum ada
+const API_BASE_URL = BASE_BACKEND_URL.endsWith("/")
+  ? BASE_BACKEND_URL
+  : `${BASE_BACKEND_URL}/`;
+
+// Debugging log untuk memastikan API_BASE_URL di sini
+console.log("UserProfilePage: API_BASE_URL is", API_BASE_URL);
 
 // --- Fungsi Helper untuk mendapatkan URL Gambar Penuh ---
 const getFullImageUrl = (path: string | undefined | null): string => {
   if (!path) {
     return "https://placehold.co/400x300/e0e0e0/505050?text=No+Image"; // Placeholder jika tidak ada gambar
   }
-  // Jika path sudah berupa URL lengkap (misalnya, dari CDN eksternal), gunakan langsung
   if (
     path.startsWith("http://") ||
     path.startsWith("https://") ||
@@ -25,9 +30,9 @@ const getFullImageUrl = (path: string | undefined | null): string => {
   ) {
     return path;
   }
-  // Jika path relatif, tambahkan base URL backend
+  // Gunakan API_BASE_URL untuk gambar
   const cleanedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${BASE_BACKEND_URL}${cleanedPath}`;
+  return `${API_BASE_URL}${cleanedPath}`;
 };
 
 interface Product {
@@ -82,12 +87,11 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    // Handle price as number
     setFormData((prev) =>
       prev
         ? {
             ...prev,
-            [name]: name === "price" ? parseFloat(value) || 0 : value, // Pastikan price adalah number
+            [name]: name === "price" ? parseFloat(value) || 0 : value,
           }
         : null
     );
@@ -155,7 +159,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
               required
             />
           </div>
-          {/* Anda bisa menambahkan input untuk thumbnailUrl, category, dll. di sini */}
           <div className="flex justify-end space-x-4">
             <button
               type="button"
@@ -224,10 +227,10 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
 const UserProfilePage: React.FC = () => {
   const { username: usernameFromUrl } = useParams<{ username: string }>();
   const navigate = useNavigate();
-  const { auth, isLoading: authLoading } = useAuth();
+  const { auth, isLoading: authLoading } = useAuth(); // Ambil auth dan isLoading dari useAuth
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // isLoading untuk fetching data profil
   const [error, setError] = useState<string | null>(null);
 
   // State untuk modal edit
@@ -246,18 +249,31 @@ const UserProfilePage: React.FC = () => {
 
   // Fungsi untuk mengambil data profil pengguna (termasuk produk)
   const fetchUserProfileData = async () => {
-    setIsLoading(true);
+    setIsLoading(true); // Mulai loading untuk fetching profil
     setError(null);
+
+    // --- DEBUGGING LOGS ---
+    console.log("UserProfilePage: Entering fetchUserProfileData.");
+    console.log("UserProfilePage: Current auth.token:", auth.token);
+    console.log("UserProfilePage: Current usernameFromUrl:", usernameFromUrl);
+    // --- END DEBUGGING LOGS ---
 
     try {
       if (!auth.token) {
-        // Jika tidak ada token, jangan lanjutkan fetching dan redirect
+        console.warn("UserProfilePage: No token found, redirecting to login.");
+        toast.error("Anda harus login untuk mengakses halaman ini.");
         navigate("/LoginPage");
+        return; // Hentikan eksekusi jika tidak ada token
+      }
+      if (!usernameFromUrl) {
+        console.error("UserProfilePage: Username not found in URL.");
+        setError("Username tidak ditemukan di URL. Mohon berikan username yang valid.");
+        setIsLoading(false);
         return;
       }
 
       const response = await axios.get(
-        `${BASE_BACKEND_URL}/api/users/${usernameFromUrl}`,
+        `${API_BASE_URL}api/users/${usernameFromUrl}`,
         {
           headers: { Authorization: `Bearer ${auth.token}` },
         }
@@ -269,7 +285,7 @@ const UserProfilePage: React.FC = () => {
       const fixedUser: UserProfile = {
         id: userFromBackend.id,
         name: userFromBackend.name,
-        username: userFromBackend.username || userFromBackend.name, // Fallback untuk username
+        username: userFromBackend.username || userFromBackend.name,
         email: userFromBackend.email,
         bio: userFromBackend.bio || "No bio available.",
         avatar: userFromBackend.avatar || "/images/default-avatar.png",
@@ -284,7 +300,7 @@ const UserProfilePage: React.FC = () => {
             thumbnailUrl: p.thumbnailUrl,
             description: p.description,
             slug: p.slug,
-            price: parseFloat(p.price), // Pastikan price adalah number
+            price: parseFloat(p.price),
             oldPrice: p.oldPrice ? parseFloat(p.oldPrice) : undefined,
             user: p.user,
             category: p.category,
@@ -292,47 +308,47 @@ const UserProfilePage: React.FC = () => {
       };
 
       setUserProfile(fixedUser);
+      console.log("UserProfilePage: User profile fetched successfully.");
     } catch (err) {
-      console.error("Fetch user profile error:", err);
+      console.error("UserProfilePage: Fetch user profile error:", err);
       if (axios.isAxiosError(err) && err.response) {
-        setError(
-          err.response.data.message || `Error: ${err.response.statusText}`
-        );
+        const errorMessage =
+          err.response.data.message || `Error: ${err.response.statusText}`;
+        setError(errorMessage);
         if (err.response.status === 401 || err.response.status === 403) {
-          toast.error("Silakan login untuk melihat profil ini.");
+          toast.error("Sesi Anda berakhir atau tidak sah. Silakan login kembali.");
           navigate("/LoginPage");
+        } else {
+          toast.error(`Gagal memuat profil: ${errorMessage}`);
         }
       } else {
-        setError("Error fetching profile. Please try again.");
+        setError("Terjadi kesalahan saat mengambil profil. Silakan coba lagi.");
+        toast.error("Terjadi kesalahan tak terduga saat memuat profil.");
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Selesai loading untuk fetching profil
     }
   };
 
   useEffect(() => {
+    // Gunakan isLoading dari AuthContext untuk memastikan context sudah siap
     if (authLoading) {
-      // Tunggu hingga status otentikasi selesai dimuat
+      console.log("UserProfilePage: AuthContext is still loading, waiting...");
       return;
     }
 
+    // Jika auth.token tidak ada setelah AuthContext selesai loading, redirect
     if (!auth.token) {
-      // Jika tidak ada token, redirect ke halaman login
+      console.warn("UserProfilePage: Auth token is missing after AuthContext loaded. Redirecting.");
       toast.error("Anda harus login untuk mengakses halaman ini.");
       navigate("/LoginPage");
       return;
     }
 
-    if (!usernameFromUrl) {
-      setError(
-        "Username tidak ditemukan di URL. Mohon berikan username yang valid."
-      );
-      setIsLoading(false);
-      return;
-    }
-
+    // Panggil fungsi fetch data profil hanya jika semua syarat terpenuhi
+    console.log("UserProfilePage: Auth token available, fetching profile data.");
     fetchUserProfileData();
-  }, [usernameFromUrl, auth.token, authLoading, navigate]);
+  }, [usernameFromUrl, auth.token, authLoading, navigate]); // Dependensi sudah benar
 
   // --- Fungsi-fungsi CRUD Produk ---
 
@@ -344,7 +360,7 @@ const UserProfilePage: React.FC = () => {
   const handleUpdateProduct = async (updatedProduct: Product) => {
     try {
       const response = await axios.put(
-        `${BASE_BACKEND_URL}/api/products/${updatedProduct.id}`,
+        `${API_BASE_URL}api/products/${updatedProduct.id}`,
         updatedProduct,
         {
           headers: { Authorization: `Bearer ${auth.token}` },
@@ -374,7 +390,7 @@ const UserProfilePage: React.FC = () => {
 
     try {
       await axios.delete(
-        `${BASE_BACKEND_URL}/api/products/${productToDeleteId}`,
+        `${API_BASE_URL}api/products/${productToDeleteId}`,
         {
           headers: { Authorization: `Bearer ${auth.token}` },
         }
@@ -393,7 +409,8 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  // Tampilan loading
+  // Tampilan loading (prioritas tinggi)
+  // Gabungkan isLoading dari AuthContext dan isLoading dari fetching profil
   if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center h-screen text-gray-700 text-lg font-semibold">
@@ -407,7 +424,7 @@ const UserProfilePage: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen text-red-600 text-lg font-semibold">
         <p>{error}</p>
-        {error.includes("login") && ( // Perbaiki pesan error agar lebih umum
+        {error.includes("login") && (
           <button
             onClick={() => navigate("/LoginPage")}
             className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
@@ -582,7 +599,7 @@ const UserProfilePage: React.FC = () => {
             </p>
             {isOwnProfile && (
               <Link
-                to="/upload-product" // Ganti dengan rute upload produk Anda
+                to="/upload-product"
                 className="inline-flex items-center mt-4 px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700"
               >
                 Unggah Produk Pertama Anda
