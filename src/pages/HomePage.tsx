@@ -198,42 +198,7 @@ const HomePage = () => {
       </section>
 
       {/* Featured Categories */}
-      <section className="py-16  relative z-10 bg-white -mt-32 rounded-t-3xl shadow-xl px-4 py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 ">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">Kategori Produk</h2>
-            <Link
-              to="/categories"
-              className="text-primary-600 hover:text-primary-700 flex items-center"
-            >
-              View all <ChevronRight size={16} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 ">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                to={`/category/${category.slug}`}
-                className="group relative overflow-hidden rounded-lg shadow-soft h-40 transition-transform hover:-translate-y-1"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 z-10"></div>
-                <img
-                  src={category.image}
-                  alt={category.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute bottom-0 left-0 right-0 p-4 z-20 text-white">
-                  <h3 className="text-lg font-semibold">{category.name}</h3>
-                  <p className="text-sm text-gray-200">
-                    {category.count} products
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+    
 
       {/* Featured Products (Sekarang dari Backend) */}
       <section className="py-16">

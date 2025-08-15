@@ -33,13 +33,6 @@ const Header = () => {
   const NavLinks = () => (
     <>
       <Link
-        to="/categories"
-        onClick={() => setIsMenuOpen(false)}
-        className="text-gray-700 hover:text-primary-600 block py-2"
-      >
-        Kategori
-      </Link>
-      <Link
         to="/trendings"
         onClick={() => setIsMenuOpen(false)}
         className="text-gray-700 hover:text-primary-600 block py-2"
