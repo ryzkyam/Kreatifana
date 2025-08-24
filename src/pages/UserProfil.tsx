@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 // --- Konfigurasi URL Backend (menggunakan variabel lingkungan Vite) ---
 const BASE_BACKEND_URL =
   import.meta.env.VITE_APP_BACKEND_URL ||
-  "https://kreatifana-backend-production-2d4c.up.railway.app"; // Default fallback
+  "https://kreatifanabe-production-0403.up.railway.app"; // Default fallback
 
 // Tambahkan trailing slash jika belum ada
 const API_BASE_URL = BASE_BACKEND_URL.endsWith("/")

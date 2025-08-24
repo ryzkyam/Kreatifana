@@ -19,7 +19,7 @@ const CategoryGrid: React.FC = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "https://kreatifanabe-production.up.railway.app/api/categories"
+          "https://kreatifanabe-production-0403.up.railway.app/api/categories"
         );
 
         if (!response.ok) {

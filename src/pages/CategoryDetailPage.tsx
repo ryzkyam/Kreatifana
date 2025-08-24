@@ -25,7 +25,7 @@ const CategoryDetailPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "https://kreatifanabe-production.up.railway.app/api/products"
+          "https://kreatifanabe-production-0403.up.railway.app/api/products"
         );
 
         if (!response.ok) throw new Error("Gagal memuat produk");

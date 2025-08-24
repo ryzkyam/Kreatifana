@@ -100,7 +100,7 @@ const paymentMethods: PaymentMethod[] = [
 // Pastikan VITE_APP_BACKEND_URL diatur di file .env Anda (misal: VITE_APP_BACKEND_URL=http://localhost:3000)
 const BASE_BACKEND_URL =
   import.meta.env.VITE_APP_BACKEND_URL ||
-  "https://kreatifana-backend-production-2d4c.up.railway.app";
+  "https://kreatifanabe-production-0403.up.railway.app";
 
 const getFullImageUrl = (path: string | undefined | null): string => {
   if (!path) {

@@ -51,7 +51,7 @@ interface Product {
  **************************/
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://kreatifanabe-production.up.railway.app/api";
+  "https://kreatifanabe-production-0403.up.railway.app/api";
 const plural = {
   product: "products",
   category: "categories",
