@@ -12,7 +12,7 @@ import React, {
 // --- Konfigurasi URL Backend ---
 const BASE_BACKEND_URL_FROM_ENV =
   import.meta.env.VITE_APP_BACKEND_URL ||
-  "https://kreatifanabe-production.up.railway.app"; // Default fallback
+  "https://kreatifanabe-production-0403.up.railway.app"; // Default fallback
 
 // PENTING: Pastikan ini diekspor
 export const API_BASE_URL = BASE_BACKEND_URL_FROM_ENV.endsWith("/")

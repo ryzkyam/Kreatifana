@@ -41,7 +41,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   // --- START PERBAIKAN DI SINI ---
   // Definisikan base URL backend kamu.
   // PENTING: Ganti "http://localhost:3000" dengan URL server Express kamu yang sebenarnya.
-  const BASE_BACKEND_URL = "https://kreatifanabe-production.up.railway.app";
+  const BASE_BACKEND_URL = "https://kreatifanabe-production-0403.up.railway.app";
 
   // ✅ Perbaikan: Fungsi pembantu untuk membuat URL gambar lengkap
   const getFullImageUrl = (path: string | undefined | null) => {
