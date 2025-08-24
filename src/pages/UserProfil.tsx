@@ -267,7 +267,9 @@ const UserProfilePage: React.FC = () => {
       }
       if (!usernameFromUrl) {
         console.error("UserProfilePage: Username not found in URL.");
-        setError("Username tidak ditemukan di URL. Mohon berikan username yang valid.");
+        setError(
+          "Username tidak ditemukan di URL. Mohon berikan username yang valid."
+        );
         setIsLoading(false);
         return;
       }
@@ -316,7 +318,9 @@ const UserProfilePage: React.FC = () => {
           err.response.data.message || `Error: ${err.response.statusText}`;
         setError(errorMessage);
         if (err.response.status === 401 || err.response.status === 403) {
-          toast.error("Sesi Anda berakhir atau tidak sah. Silakan login kembali.");
+          toast.error(
+            "Sesi Anda berakhir atau tidak sah. Silakan login kembali."
+          );
           navigate("/LoginPage");
         } else {
           toast.error(`Gagal memuat profil: ${errorMessage}`);
@@ -339,14 +343,18 @@ const UserProfilePage: React.FC = () => {
 
     // Jika auth.token tidak ada setelah AuthContext selesai loading, redirect
     if (!auth.token) {
-      console.warn("UserProfilePage: Auth token is missing after AuthContext loaded. Redirecting.");
+      console.warn(
+        "UserProfilePage: Auth token is missing after AuthContext loaded. Redirecting."
+      );
       toast.error("Anda harus login untuk mengakses halaman ini.");
       navigate("/LoginPage");
       return;
     }
 
     // Panggil fungsi fetch data profil hanya jika semua syarat terpenuhi
-    console.log("UserProfilePage: Auth token available, fetching profile data.");
+    console.log(
+      "UserProfilePage: Auth token available, fetching profile data."
+    );
     fetchUserProfileData();
   }, [usernameFromUrl, auth.token, authLoading, navigate]); // Dependensi sudah benar
 
@@ -389,12 +397,9 @@ const UserProfilePage: React.FC = () => {
     if (!productToDeleteId) return;
 
     try {
-      await axios.delete(
-        `${API_BASE_URL}api/products/${productToDeleteId}`,
-        {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        }
-      );
+      await axios.delete(`${API_BASE_URL}api/products/${productToDeleteId}`, {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
       toast.success("Produk berhasil dihapus!");
       console.log("Product deleted successfully:", productToDeleteId);
       fetchUserProfileData(); // Refresh data profil setelah hapus

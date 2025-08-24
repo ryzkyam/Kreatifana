@@ -22,7 +22,7 @@ import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext"; // PASTIKAN PATH INI SESUAI
 
 // --- Fungsi Pembantu untuk Gambar ---
-const BASE_BACKEND_URL = "https://kreatifanabe-production.up.railway.app"; // Sesuaikan dengan URL server Express Anda
+const BASE_BACKEND_URL = "https://kreatifanabe-production-0403.up.railway.app"; // Sesuaikan dengan URL server Express Anda
 
 const getFullImageUrl = (path: string | undefined | null) => {
   if (!path) {
