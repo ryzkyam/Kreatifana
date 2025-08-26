@@ -103,6 +103,7 @@ const BASE_BACKEND_URL =
   "https://kreatifanabe-production-0403.up.railway.app";
 
 const getFullImageUrl = (path: string | undefined | null): string => {
+  
   if (!path) {
     return "https://placehold.co/50x50/e0e0e0/505050?text=No+Img"; // Placeholder jika tidak ada gambar
   }
@@ -155,6 +156,7 @@ const Cart: React.FC = () => {
       .toUpperCase()}`
   ).current;
   // --- AKHIR STATE BARU ---
+
 
   // Calculate order summary
   useEffect(() => {

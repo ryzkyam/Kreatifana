@@ -198,7 +198,6 @@ const HomePage = () => {
       </section>
 
       {/* Featured Categories */}
-    
 
       {/* Featured Products (Sekarang dari Backend) */}
       <section className="py-16">

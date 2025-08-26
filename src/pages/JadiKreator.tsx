@@ -1,8 +1,38 @@
 // pages/jadiKreator.tsx
-import { useForm } from "@formspree/react"; // atau bisa pakai fetch ke backend kamu langsung
+import emailjs from "@emailjs/browser";
+
+import { useRef, useState } from "react";
 
 function JadiKreatorPage() {
-  const [state, handleSubmit] = useForm("mzzvbdjz");
+  const formRef = useRef<HTMLFormElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (!formRef.current) return;
+
+    emailjs
+      .sendForm(
+        "service_0630txm", // Service ID
+        "template_nvlunmo", // Template ID
+        formRef.current,
+        "b5kpq1MWvYPfGFpFQ" // Public Key
+      )
+      .then(
+        () => {
+          setLoading(false);
+          setSuccess(true);
+          formRef.current?.reset();
+        },
+        (error) => {
+          console.error("EmailJS Error:", error);
+          setLoading(false);
+        }
+      );
+  };
 
   return (
     <div className="min-h-screen bg-cover bg-center flex items-center justify-center">
@@ -12,9 +42,9 @@ function JadiKreatorPage() {
         </h2>
         <p className="text-center text-gray-600 mb-8">
           Isi form berikut untuk mengajukan diri sebagai kreator di platform
-          Kreatifana.
+          Kreatifana..
         </p>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block mb-2 font-medium text-gray-700">
               Nama Lengkap
@@ -52,14 +82,14 @@ function JadiKreatorPage() {
           </div>
           <button
             type="submit"
-            disabled={state.submitting}
+            disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
           >
-            {state.submitting ? "Mengirim..." : "Ajukan Sekarang"}
+            {loading ? "Mengirim..." : "Ajukan Sekarang"}
           </button>
-          {state.succeeded && (
+          {success && (
             <p className="text-green-600 text-center">
-              Pengajuan berhasil dikirim!
+              Pengajuan berhasil dikirim ke admin ({`dereazco@gmail.com`})!
             </p>
           )}
         </form>
